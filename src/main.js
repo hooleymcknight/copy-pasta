@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } = require('electr
 const path = require('path');
 const Store = require('./store.js');
 
-// import template from './helpers/menu.js'
+import template from './helpers/menu.js';
 
 let mainWindow;
 
@@ -26,97 +26,7 @@ const store = new Store({
   }
 });
 
-const template = [
-  // { role: 'appMenu' }
-  // ...(isMac
-  //     ? [{
-  //         label: app.name,
-  //         submenu: [
-  //         { role: 'about' },
-  //         { type: 'separator' },
-  //         { role: 'services' },
-  //         { type: 'separator' },
-  //         { role: 'hide' },
-  //         { role: 'hideOthers' },
-  //         { role: 'unhide' },
-  //         { type: 'separator' },
-  //         { role: 'quit' }
-  //         ]
-  //     }]
-  //     : []),
-  // { role: 'fileMenu' }
-  {
-      label: 'File',
-      submenu: [
-      // isMac ? { role: 'close' } : { role: 'quit' }
-      ]
-  },
-  {
-    label: 'Settings',
-    submenu: [
-      // {
-      //   label: 'Aggro Mode',
-      //   type: 'checkbox',
-      //   checked: store.get('aggroMode') ? store.get('aggroMode') : false,
-      //   click: (menuItem, browserWindow, event) => {
-      //     browserWindow.webContents.send('aggroModeToggle', menuItem.checked);
-      //     store.set('aggroMode', menuItem.checked);
-      //   }
-      // }
-    ]
-  },
-  // { role: 'viewMenu' }
-  {
-      label: 'View',
-      submenu: [
-      { role: 'reload' },
-      { role: 'forceReload' },
-      { role: 'toggleDevTools' },
-      { role: 'togglefullscreen' },
-      // { 
-      //     label: 'Toggle Dark Mode',
-      //     type: 'checkbox',
-      //     checked: store.get('darkMode') ? store.get('darkMode') : false,
-      //     click: (menuItem, browserWindow, event) => {
-      //         browserWindow.webContents.send('darkModeToggle', menuItem.checked);
-      //         store.set('darkMode', menuItem.checked);
-      //     }
-      // }
-      ]
-  },
-  // { role: 'windowMenu' }
-  {
-      label: 'Window',
-      submenu: [
-      { role: 'minimize' },
-      { role: 'zoom' },
-      // ...(isMac
-      //     ? [
-      //         { type: 'separator' },
-      //         { role: 'front' },
-      //         { type: 'separator' },
-      //         { role: 'window' }
-      //     ]
-      //     : [
-      //         { role: 'close' }
-      //     ])
-      ]
-  },
-  {
-      role: 'help',
-      submenu: [
-        {
-            label: 'See My Portfolio',
-            click: async () => {
-            const { shell } = require('electron')
-            await shell.openExternal('https://hooleymcknight.com/')
-            }
-        }
-      ]
-  }
-]
-
-const menu = Menu.buildFromTemplate(template);
+const menu = Menu.buildFromTemplate(template());
 Menu.setApplicationMenu(menu);
 
 const createWindow = () => {
@@ -127,7 +37,7 @@ const createWindow = () => {
   let settings = {
     width,
     height,
-    icon: path.join(__dirname + './../../src/assets/mpc_icon_200.png'),
+    icon: path.join(__dirname + './../../src/assets/copy-pasta_200.png'),
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInSubFrames: true,

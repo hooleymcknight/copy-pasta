@@ -75,9 +75,9 @@ const CopyPasta = () => {
         const newName = container.querySelector('input').value;
         const currentName = container.querySelector('.entry').id;
 
-        const newSubEntry1 = container.querySelector('input#sub-entry-1').value;
-        const newSubEntry2 = container.querySelector('input#sub-entry-2').value;
-        const newSubEntry3 = container.querySelector('input#sub-entry-3').value;
+        const newSubEntry1 = container.querySelector('[data-entry-id="1"] input').value;
+        const newSubEntry2 = container.querySelector('[data-entry-id="2"] input').value;
+        const newSubEntry3 = container.querySelector('[data-entry-id="3"] input').value;
 
         const newEntriesData = [...entriesData];
         const currentEntry = newEntriesData.filter(x => x.label === currentName)[0];
@@ -127,7 +127,7 @@ const CopyPasta = () => {
     }
 
     const removeHandler = (e, entryId) => {
-        const container = e.target.closest('.clock-app').querySelector(`[id="${entryId}"]`);
+        const container = e.target.closest('.copy-pasta-app').querySelector(`[id="${entryId}"]`);
 
         let newEntriesData = [...entriesData];
         newEntriesData = newEntriesData.filter(x => x.name !== entryId);
@@ -184,6 +184,8 @@ const CopyPasta = () => {
                             closeEditHandler={(e) => closeEditName(e)}
                             openEditHandler={(e) => openEditName(e)}
                             validInput={isInputValid}
+                            trashCanHandler={(e) => triggerRemoveModal(e)}
+                            kpHandler={(e) => handleKeyPress(e)}
                         ></Entry>
                     </div>
                 )
