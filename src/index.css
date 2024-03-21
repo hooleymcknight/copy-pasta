@@ -1,0 +1,206 @@
+@font-face {
+  font-family: "Titillium Web Black";
+  src: url("./assets/TitilliumWeb-Black.ttf");
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url('./assets/Poppins-Regular.ttf');
+}
+
+:root {
+  --off-white: #f2f2f2;
+  --off-black: #222222;
+  --dark-purple: #4f1665;
+
+  --dark-bg: #2d2d2d;
+  --light-purple: #ddabed;
+}
+
+html.dark-mode body {
+  --primary-bg: var(--dark-bg);
+  background-color: var(--primary-bg);
+  /* --primary-purple: var(--light-purple); */
+  color: var(--off-white);
+}
+
+html.dark-mode button#remove svg {
+  color: var(--light-purple);
+}
+
+html.dark-mode button#remove:hover svg {
+  color: var(--dark-purple);
+  background: #fff;
+  border-radius: 6px;
+}
+
+html.dark-mode button#edit svg {
+  color: var(--off-white);
+}
+
+html.dark-mode button#edit:hover svg {
+  color: var(--light-purple);
+}
+
+body {
+  font-family: 'Poppins';
+  margin: auto;
+  max-width: 38rem;
+  padding: 2rem;
+  background-color: var(--off-white);
+
+  --primary-purple: var(--dark-purple);
+  --primary-bg: var(--off-white);
+}
+
+.time {
+  display: flex;
+  gap: 10px;
+}
+
+.timeElement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeElement.divider {
+  font-size: 32px;
+}
+
+.time .digit {
+  font-size: 36px;
+}
+
+.time .txt {
+  display: none;
+}
+
+button.btn {
+  background: var(--primary-purple);
+  color: #fff;
+  border: 2px solid var(--primary-purple);
+  text-transform: uppercase;
+  padding: 8px 20px;
+  margin: 0 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Titillium Web Black';
+  letter-spacing: 1.2px;
+  font-size: 20px;
+}
+
+button.btn:hover {
+  background: #fff;
+  color: var(--primary-purple);
+}
+
+button#add {
+  margin-left: 55px;
+  margin-top: 30px;
+  font-size: 36px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stopwatch-section {
+  position: relative;
+  padding: 10px 10px 10px 50px;
+}
+
+.stopwatch-section .sw-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.stopwatch-section .sw-header h2 {
+  margin: 5px 0;
+}
+
+.stopwatch-section:hover button#remove,
+.stopwatch-section:hover button#edit,
+.stopwatch-section input + button#edit {
+  display: flex;
+}
+
+button#edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  align-items: center;
+}
+
+button#edit:hover svg {
+  color: var(--primary-purple);
+}
+
+button#remove {
+  background: none;
+  border: none;
+  padding: 6px;
+  align-items: center;
+  position: absolute;
+  left: 0;
+  top: 10px;
+  cursor: pointer;
+}
+
+button#remove svg {
+  color: var(--primary-purple);
+  font-size: 32px;
+  padding: 0 2px;
+}
+
+button#remove:hover svg {
+  background: var(--primary-purple);
+  color: #fff;
+  border-radius: 6px;
+}
+
+/** Confirmation modal **/
+
+.confirm-modal {
+  background: rgba(0, 0, 0, 0.7);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.confirm-modal .modal-inner {
+  width: 70%;
+  position: absolute;
+  background: var(--primary-bg);
+  transform: translate(-50%, -150%);
+  top: 50%;
+  left: 50%;
+  border-radius: 8px;
+  border: 2px solid var(--primary-purple);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.confirm-modal .modal-inner p {
+  margin-top: 0;
+  text-align: center;
+  width: 100%;
+}
+
+/* COPY PASTA ONLY! */
+
+.copy-btn {
+  display: block;
+  margin: 0 auto 10px 0;
+}
+
+.entry-header {
+  display: flex;
+}
