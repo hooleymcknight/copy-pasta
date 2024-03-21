@@ -150,11 +150,6 @@ button#edit:hover svg {
   color: var(--primary-purple);
 }
 
-[data-editing="true"] button#edit {
-  /* top: auto;
-  bottom: 10px; */
-}
-
 [data-editing="true"] button#edit svg {
   font-size: 28px;
 }
