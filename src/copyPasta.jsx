@@ -16,6 +16,10 @@ const ipcRenderer = window.require('electron').ipcRenderer;
 // })
 
 const CopyPasta = () => {
+
+    // thinking that "entries data" should also just include the tab.
+    // having extra states for tab data and then active tab data sounds like a nightmare
+
     const [entriesData, setEntriesData] = React.useState([]);
     const [timersData, setTimersData] = React.useState([]);
 
@@ -75,11 +79,21 @@ const CopyPasta = () => {
         const newName = container.querySelector('input').value;
         const currentName = container.querySelector('.entry').id;
 
-        const newSubEntry1 = container.querySelector('[data-entry-id="1"] input').value;
-        const newSubEntry2 = container.querySelector('[data-entry-id="2"] input').value;
-        const newSubEntry3 = container.querySelector('[data-entry-id="3"] input').value;
+        const newSubEntry1 = {
+            "content": container.querySelector('[data-entry-id="1"] input').value,
+            "hidden": container.querySelector('[data-entry-id="1"] button').classList.contains('entry-hidden'),
+        }
+        const newSubEntry2 = {
+            "content": container.querySelector('[data-entry-id="2"] input').value,
+            "hidden": container.querySelector('[data-entry-id="2"] button').classList.contains('entry-hidden'),
+        }
+        const newSubEntry3 = {
+            "content": container.querySelector('[data-entry-id="3"] input').value,
+            "hidden": container.querySelector('[data-entry-id="3"] button').classList.contains('entry-hidden'),
+        }
 
         const newEntriesData = [...entriesData];
+        console.log(newEntriesData);
         const currentEntry = newEntriesData.filter(x => x.label === currentName)[0];
         const indexToReplace = newEntriesData.indexOf(currentEntry);
         newEntriesData[indexToReplace] = {
@@ -109,9 +123,9 @@ const CopyPasta = () => {
         const newItemNumber = entriesData.length + 1;
         const newItem = {
             label: `Entry #${newItemNumber}`,
-            subEntry1: 'some text here',
-            subEntry2: null,
-            subEntry3: null,
+            subEntry1: { "content": "some text here", "hidden":false },
+            subEntry2: { "content": null, "hidden":false },
+            subEntry3: { "content": null, "hidden":false },
         }
         const newEntriesData = [...entriesData, newItem];
         ipcRenderer.send('addOrDelete', newEntriesData);
@@ -127,30 +141,19 @@ const CopyPasta = () => {
     }
 
     const removeHandler = (e, entryId) => {
-        const container = e.target.closest('.copy-pasta-app').querySelector(`[id="${entryId}"]`);
-
         let newEntriesData = [...entriesData];
-        newEntriesData = newEntriesData.filter(x => x.name !== entryId);
+        newEntriesData = newEntriesData.filter(x => x.label !== entryId);
         ipcRenderer.send('addOrDelete', newEntriesData);
         setEntriesData(newEntriesData);
         setDeleting('');
     }
 
     React.useEffect(() => {
-        ipcRenderer.on('stopAllTimers', (event) => {
-            const activeTimers = document.querySelectorAll('.entry.active');
-            if (activeTimers.length) {
-                activeTimers.forEach((timer) => {
-                    stopHandler(timer);
-                });
-            }
-        });
 
         ipcRenderer.on('saveTimers', () => {
             const activeTimers = document.querySelectorAll('.entry.active');
             if (activeTimers.length) {
-                activeTimers.forEach((timer) => {
-                    stopHandler(timer, true);
+                activeTimers.forEach(() => {
                     ipcRenderer.send('saveTimersReply', entriesData);
                 });
             }
@@ -164,18 +167,27 @@ const CopyPasta = () => {
         //     setIsAggro(data);
         // });
 
+        // =========== this is happening in a loop. track this down ====================================
         ipcRenderer.on('loadSavedEntriesReply', (event, data) => {
-            setEntriesData(data);
+            console.log('load')
+            console.log(data[0].entries.map(x => x.label));
+            setEntriesData(data[0]);
         });
 
         if (entriesData.length > 0) return;
         ipcRenderer.send('loadSavedEntries', []);
     }, [entriesData]);
 
+    console.log(entriesData.entries);
+
     return (
         <main className="copy-pasta-app">
+            <div className="tabs-section">
+            </div>
             {
-                entriesData.map((x, idx) => 
+                entriesData.entries.length
+                ?
+                entriesData.entries.map((x, idx) =>
                     <div key={x.label} className="entries-section" data-index={idx} data-count-on-load={x.count}>
                         <Entry label={x.label}
                             subEntry1={x.subEntry1} subEntry2={x.subEntry2} subEntry3={x.subEntry3}
@@ -189,6 +201,8 @@ const CopyPasta = () => {
                         ></Entry>
                     </div>
                 )
+                :
+                ''
             }
             <button className="btn" id="add" onClick={() => addHandler()}>
                 <FontAwesomeIcon icon={faPlus} />

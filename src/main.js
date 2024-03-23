@@ -15,12 +15,17 @@ const store = new Store({
   configName: 'user-preferences',
   defaults: {
     windowBounds: { width: 800, height: 600 },
-    entries: [
+    data: [
       {
-        label: 'Entry #1',
-        subEntry1: 'some text here',
-        subEntry2: 'more text!',
-        subEntry3: null,
+        "tab_name": "Group #1",
+        "entries": [
+          {
+            label: 'Entry #1',
+            subEntry1: { "content": "some text here", "hidden": false },
+            subEntry2: { "content": "more text!", "hidden": false },
+            subEntry3: { "content": null, "hidden": false },
+          }
+        ]
       }
     ],
   }
@@ -131,7 +136,7 @@ app.on('activate', () => {
 // });
 
 ipcMain.on('loadSavedEntries', (event, data) => {
-  event.reply('loadSavedEntriesReply', store.get('entries'));
+  event.reply('loadSavedEntriesReply', store.get('data'));
 });
 
 ipcMain.on('updateSavedEntries', (event, data) => {

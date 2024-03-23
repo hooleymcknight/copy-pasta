@@ -246,6 +246,7 @@ button#remove:hover svg {
 
 .entry[data-editing="true"] {
   background-color: rgba(15, 94, 23, 0.34);
+  margin-bottom: 20px;
 }
 
 .sub-entries {
@@ -262,6 +263,11 @@ button#remove:hover svg {
 button.hide-subentry {
   padding-top: 3.5px;
   padding-bottom: 3.5px;
+}
+
+button.hide-subentry.entry-hidden {
+  background: #727272;
+  color: white;
 }
 
 .copy-confirmed {
