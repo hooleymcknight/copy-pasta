@@ -20,6 +20,7 @@ const CopyPasta = () => {
     // thinking that "entries data" should also just include the tab.
     // having extra states for tab data and then active tab data sounds like a nightmare
 
+    const [activeTab, setActiveTab] = React.useState(0); // index in entriesData, default is the first one
     const [entriesData, setEntriesData] = React.useState([]);
     const [timersData, setTimersData] = React.useState([]);
 
@@ -30,9 +31,10 @@ const CopyPasta = () => {
 
     ipcRenderer.on('aggroModeToggle', (event, data) => {
         setIsAggro(data);
-    })
+    });
 
     ipcRenderer.on('updateTime', (event, data) => {
+        console.log('update time');
         let newData = JSON.parse(data);
         const newTimersData = [...timersData];
         const indexToReplace = newTimersData.indexOf(newTimersData.filter(x => x.name === newData.id)[0]);
@@ -41,6 +43,7 @@ const CopyPasta = () => {
     })
 
     const stopHandler = (timer, closingWindow) => {
+        console.log('stop handler');
         const newCount = timer.dataset.count;
         const timerId = timer.id;
 
@@ -58,6 +61,7 @@ const CopyPasta = () => {
     }
 
     const openEditName = (e) => {
+        console.log('open edit name');
         const container = e.target.closest('.entries-section');
         const entryId = container.querySelector('.entry').id;
         setEditing(entryId);
@@ -75,6 +79,7 @@ const CopyPasta = () => {
     }
 
     const closeEditName = (e) => {
+        console.log('close edit name');
         const container = e.target.closest('.entries-section');
         const newName = container.querySelector('input').value;
         const currentName = container.querySelector('.entry').id;
@@ -93,10 +98,9 @@ const CopyPasta = () => {
         }
 
         const newEntriesData = [...entriesData];
-        console.log(newEntriesData);
-        const currentEntry = newEntriesData.filter(x => x.label === currentName)[0];
-        const indexToReplace = newEntriesData.indexOf(currentEntry);
-        newEntriesData[indexToReplace] = {
+        const currentEntry = newEntriesData[activeTab].entries.filter(x => x.label === currentName)[0];
+        const indexToReplace = newEntriesData[activeTab].entries.indexOf(currentEntry);
+        newEntriesData[activeTab].entries[indexToReplace] = {
             label: newName,
             subEntry1: newSubEntry1,
             subEntry2: newSubEntry2,
@@ -120,32 +124,41 @@ const CopyPasta = () => {
     }
 
     const addHandler = () => { // this has been updated
-        const newItemNumber = entriesData.length + 1;
+        console.log('add handler');
+        const newItemNumber = entriesData[activeTab].entries.length + 1;
         const newItem = {
             label: `Entry #${newItemNumber}`,
             subEntry1: { "content": "some text here", "hidden":false },
             subEntry2: { "content": null, "hidden":false },
             subEntry3: { "content": null, "hidden":false },
         }
-        const newEntriesData = [...entriesData, newItem];
-        ipcRenderer.send('addOrDelete', newEntriesData);
+        
+        const newEntriesData = [...entriesData];
+        newEntriesData[activeTab].entries.push(newItem);
+
         setEntriesData(newEntriesData);
         setEditing(`Entry #${newItemNumber}`);
     }
 
     const triggerRemoveModal = (e) => {
+        console.log('trigger remove modal');
         const container = e.target.closest('.entries-section'); // update this class and the next
         const entryId = container.querySelector('.entry').id;
 
         setDeleting(entryId);
     }
 
-    const removeHandler = (e, entryId) => {
+    const removeHandler = (entryId) => {
         let newEntriesData = [...entriesData];
-        newEntriesData = newEntriesData.filter(x => x.label !== entryId);
-        ipcRenderer.send('addOrDelete', newEntriesData);
+        newEntriesData[activeTab].entries = newEntriesData[activeTab].entries.filter(x => x.label !== entryId);
+        ipcRenderer.send('updateSavedEntries', newEntriesData);
         setEntriesData(newEntriesData);
         setDeleting('');
+    }
+
+    const tabClickHandler = (e) => {
+        const tabData = entriesData.filter(x => x.tabName === e.target.id)[0];
+        setActiveTab(entriesData.indexOf(tabData));
     }
 
     React.useEffect(() => {
@@ -169,25 +182,35 @@ const CopyPasta = () => {
 
         // =========== this is happening in a loop. track this down ====================================
         ipcRenderer.on('loadSavedEntriesReply', (event, data) => {
-            console.log('load')
-            console.log(data[0].entries.map(x => x.label));
-            setEntriesData(data[0]);
+            setEntriesData(data);
         });
 
-        if (entriesData.length > 0) return;
+        console.log(entriesData[activeTab])
+        if (entriesData[activeTab]?.entries?.length > 0) return;
         ipcRenderer.send('loadSavedEntries', []);
     }, [entriesData]);
-
-    console.log(entriesData.entries);
 
     return (
         <main className="copy-pasta-app">
             <div className="tabs-section">
+                <div class="tab-spacer"></div>
+                {entriesData.map((x, index) =>
+                    <button
+                        type="button"
+                        key={index}
+                        id={x.tabName}
+                        className={index === activeTab ? 'active tab' : 'tab'}
+                        onClick={(e) => tabClickHandler(e)}
+                    >
+                        {x.tabName}
+                    </button>
+                )}
+                <div class="tab-spacer"></div>
             </div>
             {
-                entriesData.entries.length
+                entriesData[activeTab]?.entries?.length
                 ?
-                entriesData.entries.map((x, idx) =>
+                entriesData[activeTab]?.entries.map((x, idx) =>
                     <div key={x.label} className="entries-section" data-index={idx} data-count-on-load={x.count}>
                         <Entry label={x.label}
                             subEntry1={x.subEntry1} subEntry2={x.subEntry2} subEntry3={x.subEntry3}
@@ -208,7 +231,7 @@ const CopyPasta = () => {
                 <FontAwesomeIcon icon={faPlus} />
             </button>
             {deleting ?
-                <ConfirmModal label={deleting} aggro={isAggro} onDelete={(e) => removeHandler(e, deleting)} onCancel={() => setDeleting('')} />
+                <ConfirmModal label={deleting} aggro={isAggro} onDelete={() => removeHandler(deleting)} onCancel={() => setDeleting('')} />
             :
                 ''
             }

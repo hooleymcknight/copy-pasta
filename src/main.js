@@ -17,7 +17,7 @@ const store = new Store({
     windowBounds: { width: 800, height: 600 },
     data: [
       {
-        "tab_name": "Group #1",
+        "tabName": "Group #1",
         "entries": [
           {
             label: 'Entry #1',
@@ -140,7 +140,7 @@ ipcMain.on('loadSavedEntries', (event, data) => {
 });
 
 ipcMain.on('updateSavedEntries', (event, data) => {
-  store.set('entries', data);
+  store.set('data', data);
 });
 
 // ipcMain.on('requestAggro', (event, data) => {

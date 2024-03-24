@@ -10,7 +10,7 @@ const ConfirmModal = (props) => {
         }
         else if(e.target.closest('#yes')) {
             // clicked yes, delete it.
-            props.onDelete(e);
+            props.onDelete();
         }
     }
 

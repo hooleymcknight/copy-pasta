@@ -15,11 +15,14 @@ This app is not explicitly secure, and should not be used for storing sensitive 
 - added a "hide entry" button
 - store info on what subentries are hidden
 - fixed removeHandler function after confirming entry delete
+- created tabs for users to have different categories
 
 ## Future updates
 
-- create tabs for users to have different categories
+- add a way to add new tabs
+- add overflow handling for too many tabs
 - aggro mode, heheheh
 - add in dark mode before everyone hates me
 - menus for Mac users
 - remove leftover timer code
+- allow move entries to other tabs rather than deleting and making new entries
