@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faCheck, faSquareXmark, faPlus, faEyeSlash, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faCheck, faEyeSlash, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 // import clipboard from 'clipboardy';
 
 function copy(e) {
@@ -45,7 +45,7 @@ const Entry = (props) => {
             ?
                 <>
                 <div className="entry-header">
-                    <input autoFocus={true} type="text" defaultValue={props.label} onChange={(e) => validateInput(e)} onKeyUp={(e) => props.kpHandler(e)}></input>
+                    <input autoFocus={true} type="text" defaultValue={props.label} onChange={(e) => props.onEntry(e)} onKeyUp={(e) => props.kpHandler(e)}></input>
                 </div>
 
                 <div className="sub-entries">

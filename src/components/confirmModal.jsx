@@ -15,7 +15,7 @@ const ConfirmModal = (props) => {
     }
 
     return (
-        <div className="confirm-modal" id={props.name} onClick={(e) => clickHandler(e)}>
+        <div className="confirm-modal" id={props.label} onClick={(e) => clickHandler(e)}>
             {props.aggro ? 
                 <div className="modal-inner">
                     <p>Bitch you sure???</p>
@@ -24,7 +24,7 @@ const ConfirmModal = (props) => {
                 </div>
             :
                 <div className="modal-inner">
-                    <p>Are you super sure you want to delete your timer for {props.name}?</p>
+                    <p>Are you super sure you want to delete {props.type === 'tab' ? `this WHOLE tab: ${props.tabLabel}` : props.label}?</p>
                     <button className="btn" id="yes">Yes</button>
                     <button className="btn" id="no">No</button>
                 </div>

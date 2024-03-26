@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPencil, faCheck, faSquareXmark, faPlus } from '@fortawesome/free-solid-svg-icons'
 import Entry from "./components/entry.jsx";
 import ConfirmModal from './components/confirmModal.jsx';
+import TabSection from './components/tabSection.jsx';
 const ipcRenderer = window.require('electron').ipcRenderer;
 
 // ipcRenderer.on('darkModeToggle', (event, data) => {
@@ -17,48 +18,28 @@ const ipcRenderer = window.require('electron').ipcRenderer;
 
 const CopyPasta = () => {
 
-    // thinking that "entries data" should also just include the tab.
-    // having extra states for tab data and then active tab data sounds like a nightmare
-
     const [activeTab, setActiveTab] = React.useState(0); // index in entriesData, default is the first one
     const [entriesData, setEntriesData] = React.useState([]);
-    const [timersData, setTimersData] = React.useState([]);
-
     const [editing, setEditing] = React.useState('');
+    const [deleting, setDeleting] = React.useState([]);
+    const [renamingTab, setRenamingTab] = React.useState('');
+    
     const [isInputValid, setIsInputValid] = React.useState(true);
-    const [deleting, setDeleting] = React.useState('');
     const [isAggro, setIsAggro] = React.useState(false);
+
+    // clear everything out so we're not getting a bunch of listener duplicates
+    ipcRenderer.removeAllListeners();
 
     ipcRenderer.on('aggroModeToggle', (event, data) => {
         setIsAggro(data);
     });
 
-    ipcRenderer.on('updateTime', (event, data) => {
-        console.log('update time');
-        let newData = JSON.parse(data);
-        const newTimersData = [...timersData];
-        const indexToReplace = newTimersData.indexOf(newTimersData.filter(x => x.name === newData.id)[0]);
-        newTimersData[indexToReplace] = { name: newData.id, count: Number(newData.count) };
-        setTimersData(newTimersData);
-    })
-
-    const stopHandler = (timer, closingWindow) => {
-        console.log('stop handler');
-        const newCount = timer.dataset.count;
-        const timerId = timer.id;
-
-        const newTimersData = [...timersData];
-        const indexToReplace = newTimersData.indexOf(newTimersData.filter(x => x.name === timerId)[0]);
-        newTimersData[indexToReplace] = { name: timerId, count: newCount };
-        ipcRenderer.send('updateSavedTimers', newTimersData);
-
-        if (closingWindow) {
-            ipcRenderer.send('closeWindow');
-        }
-        else {
-            setTimersData(newTimersData);
-        }
-    }
+    ipcRenderer.on('deleteActiveTab', () => {
+        setDeleting(['tab', activeTab]);
+    });
+    ipcRenderer.on('renameActiveTab', () => {
+        setRenamingTab(activeTab);
+    });
 
     const openEditName = (e) => {
         console.log('open edit name');
@@ -145,68 +126,53 @@ const CopyPasta = () => {
         const container = e.target.closest('.entries-section'); // update this class and the next
         const entryId = container.querySelector('.entry').id;
 
-        setDeleting(entryId);
+        setDeleting(['entry', entryId]);
     }
 
-    const removeHandler = (entryId) => {
-        let newEntriesData = [...entriesData];
-        newEntriesData[activeTab].entries = newEntriesData[activeTab].entries.filter(x => x.label !== entryId);
-        ipcRenderer.send('updateSavedEntries', newEntriesData);
-        setEntriesData(newEntriesData);
-        setDeleting('');
-    }
-
-    const tabClickHandler = (e) => {
-        const tabData = entriesData.filter(x => x.tabName === e.target.id)[0];
-        setActiveTab(entriesData.indexOf(tabData));
+    const removeHandler = (input) => {
+        // if deleting an entry:
+        if (input[0] === 'entry') {
+            let newEntriesData = [...entriesData];
+            newEntriesData[activeTab].entries = newEntriesData[activeTab].entries.filter(x => x.label !== input[1]);
+            ipcRenderer.send('updateSavedEntries', newEntriesData);
+            setEntriesData(newEntriesData);
+            setDeleting([]);
+        }
+        else { // if deleting a whole tab
+            let newEntriesData = [...entriesData];
+            newEntriesData.splice(activeTab, 1);
+            let newActiveTab = 0;
+            if (activeTab > 1) {
+                newActiveTab = activeTab - 1;
+            }
+            ipcRenderer.send('updateSavedEntries', newEntriesData);
+            setEntriesData(newEntriesData);
+            setActiveTab(newActiveTab);
+            setDeleting([]);
+        }
     }
 
     React.useEffect(() => {
-
-        ipcRenderer.on('saveTimers', () => {
-            const activeTimers = document.querySelectorAll('.entry.active');
-            if (activeTimers.length) {
-                activeTimers.forEach(() => {
-                    ipcRenderer.send('saveTimersReply', entriesData);
-                });
-            }
-            else {
-                ipcRenderer.send('closeWindow');
-            }
-        });
-
         // ipcRenderer.send('requestAggro');
         // ipcRenderer.on('sendAggroState', (event, data) => {
         //     setIsAggro(data);
         // });
 
-        // =========== this is happening in a loop. track this down ====================================
         ipcRenderer.on('loadSavedEntriesReply', (event, data) => {
             setEntriesData(data);
         });
 
-        console.log(entriesData[activeTab])
         if (entriesData[activeTab]?.entries?.length > 0) return;
         ipcRenderer.send('loadSavedEntries', []);
     }, [entriesData]);
 
     return (
         <main className="copy-pasta-app">
-            <div className="tabs-section">
-                <div class="tab-spacer"></div>
-                {entriesData.map((x, index) =>
-                    <button
-                        type="button"
-                        key={index}
-                        id={x.tabName}
-                        className={index === activeTab ? 'active tab' : 'tab'}
-                        onClick={(e) => tabClickHandler(e)}
-                    >
-                        {x.tabName}
-                    </button>
-                )}
-                <div class="tab-spacer"></div>
-            </div>
+            <TabSection
+                entriesData={entriesData} activeTab={activeTab} renamingTab={renamingTab}
+                setEntriesData={(x) => setEntriesData(x)} setActiveTab={(x) => setActiveTab(x)} setRenamingTab={(x) => setRenamingTab(x)}
+            >
+            </TabSection>
             {
                 entriesData[activeTab]?.entries?.length
                 ?
@@ -221,6 +187,7 @@ const CopyPasta = () => {
                             validInput={isInputValid}
                             trashCanHandler={(e) => triggerRemoveModal(e)}
                             kpHandler={(e) => handleKeyPress(e)}
+                            onEntry={(e) => validateInput(e)}
                         ></Entry>
                     </div>
                 )
@@ -230,8 +197,8 @@ const CopyPasta = () => {
             <button className="btn" id="add" onClick={() => addHandler()}>
                 <FontAwesomeIcon icon={faPlus} />
             </button>
-            {deleting ?
-                <ConfirmModal label={deleting} aggro={isAggro} onDelete={() => removeHandler(deleting)} onCancel={() => setDeleting('')} />
+            {deleting.length ?
+                <ConfirmModal type={deleting[0]} label={deleting[1]} tabLabel={entriesData[activeTab].tabName} aggro={isAggro} onDelete={(e) => removeHandler(deleting)} onCancel={() => setDeleting([])} />
             :
                 ''
             }
