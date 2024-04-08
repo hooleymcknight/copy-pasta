@@ -17,13 +17,15 @@ This app is not explicitly secure, and should not be used for storing sensitive 
 - fixed removeHandler function after confirming entry delete
 - created tabs for users to have different categories
 - users can add, edit, and delete tabs
+- remembers which tab was open last, and starts with that one
 
 ## Future updates
 
+- rearrange entries within a tab by drag and drop
 - add overflow handling for too many tabs
-- aggro mode, heheheh
 - add in dark mode before everyone hates me
 - menus for Mac users
+- aggro mode, heheheh
 - allow move entries to other tabs rather than deleting and making new entries
 - group tab menu options underneath Edit
 - are menu icons a thing? I'd like to have those

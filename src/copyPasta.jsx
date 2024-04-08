@@ -129,6 +129,8 @@ const CopyPasta = () => {
         setDeleting(['entry', entryId]);
     }
 
+    
+
     const removeHandler = (input) => {
         // if deleting an entry:
         if (input[0] === 'entry') {
@@ -145,6 +147,13 @@ const CopyPasta = () => {
             if (activeTab > 1) {
                 newActiveTab = activeTab - 1;
             }
+            
+            const previouslyActiveTab = newEntriesData.filter(x => x.active === true)[0];
+            if (previouslyActiveTab) {
+                previouslyActiveTab.active = false;
+            }
+            newEntriesData[newActiveTab].active = true;
+
             ipcRenderer.send('updateSavedEntries', newEntriesData);
             setEntriesData(newEntriesData);
             setActiveTab(newActiveTab);
@@ -159,6 +168,8 @@ const CopyPasta = () => {
         // });
 
         ipcRenderer.on('loadSavedEntriesReply', (event, data) => {
+            const activeTabData = data.filter(x => x.active === true)[0];
+            setActiveTab(data.indexOf(activeTabData));
             setEntriesData(data);
         });
 

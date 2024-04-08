@@ -15,6 +15,7 @@ const TabSection = (props) => {
         const newTabNumber = entriesData.length;
         const newTab = {
             "tabName": `Tab #${newTabNumber + 1}`,
+            "active": false,
             "entries": [
                 {
                     "label":"Label #1",
@@ -24,7 +25,7 @@ const TabSection = (props) => {
                     },
                     "subEntry2":{
                         "content":null,
-                        "hidden":true
+                        "hidden":false
                     },
                     "subEntry3":{
                         "content":null,
@@ -34,14 +35,30 @@ const TabSection = (props) => {
             ]
         }
         const newEntriesData = [...entriesData, newTab];
-        ipcRenderer.send('updateSavedEntries', newEntriesData); // check ipc
+        
+        const previouslyActiveTab = newEntriesData.filter(x => x.active === true)[0];
+        if (previouslyActiveTab) {
+            previouslyActiveTab.active = false;
+        }
+        newEntriesData[newTabNumber].active = true;
+
+        ipcRenderer.send('updateSavedEntries', newEntriesData);
         props.setEntriesData(newEntriesData);
         props.setActiveTab(newTabNumber);
     }
 
     const tabClickHandler = (e) => {
         const tabData = entriesData.filter(x => x.tabName === e.target.id)[0];
-        props.setActiveTab(entriesData.indexOf(tabData));
+        const newActiveTab = entriesData.indexOf(tabData);
+
+        const newEntriesData = [...entriesData];
+        const previouslyActiveTab = newEntriesData.filter(x => x.active === true)[0];
+        if (previouslyActiveTab) {
+            previouslyActiveTab.active = false;
+        }
+        newEntriesData[newActiveTab].active = true;
+        ipcRenderer.send('updateSavedEntries', newEntriesData);
+        props.setActiveTab(newActiveTab);
     }
 
     const tabSubmitHandler = (e) => {

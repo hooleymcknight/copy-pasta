@@ -18,6 +18,7 @@ const store = new Store({
     data: [
       {
         "tabName": "Group #1",
+        "active": true,
         "entries": [
           {
             label: 'Entry #1',
@@ -131,10 +132,6 @@ app.on('activate', () => {
 //   mainWindow.close();
 // });
 
-// ipcMain.on('addOrDelete', (event, data) => {
-//   store.set('clientTimers', data);
-// });
-
 ipcMain.on('loadSavedEntries', (event, data) => {
   event.reply('loadSavedEntriesReply', store.get('data'));
 });
@@ -145,21 +142,6 @@ ipcMain.on('updateSavedEntries', (event, data) => {
 
 // ipcMain.on('requestAggro', (event, data) => {
 //   event.reply('sendAggroState', store.get('aggroMode'));
-// });
-
-// ipcMain.on('timersToggled', (event, data) => {
-//   if (data) {
-//     let nimage = nativeImage.createFromBuffer(Buffer.from(iconOverlay));
-//     mainWindow.setOverlayIcon(nimage, 'timers are going');
-//   }
-//   else {
-//     mainWindow.setOverlayIcon(null, 'timers are all stopped');
-//   }
-// });
-
-// ipcMain.on('stopWatch', (event, data) => {
-//   data.win = mainWindow;
-//   stopWatch(data);
 // });
 
 // move and uncomment the below if needed for testing
