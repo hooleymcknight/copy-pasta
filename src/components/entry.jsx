@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPencil, faCheck, faSquareXmark, faPlus, faEyeSlash, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faPencil, faCheck, faEyeSlash, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 // import clipboard from 'clipboardy';
 
 function copy(e) {
@@ -18,15 +18,13 @@ function copy(e) {
 
 
 const Entry = (props) => {
-    const [SE1hidden, setSE1hidden] = React.useState(false);
-    const [SE2hidden, setSE2hidden] = React.useState(false);
-    const [SE3hidden, setSE3hidden] = React.useState(false);
+    const [SE1hidden, setSE1hidden] = React.useState(props.subEntry1.hidden);
+    const [SE2hidden, setSE2hidden] = React.useState(props.subEntry2.hidden);
+    const [SE3hidden, setSE3hidden] = React.useState(props.subEntry3.hidden);
 
     function hideHandler(e) {
         const container = e.target.closest('.sub-entry');
-        console.log(container);
         const seNumber = container.dataset.entryId;
-        console.log(seNumber);
         switch (seNumber) {
             case "1":
                 setSE1hidden(!SE1hidden);
@@ -38,7 +36,6 @@ const Entry = (props) => {
                 setSE3hidden(!SE3hidden);
                 break;
         }
-        // container.querySelector('input').type = 'password';
     }
 
     return (
@@ -48,21 +45,21 @@ const Entry = (props) => {
             ?
                 <>
                 <div className="entry-header">
-                    <input autoFocus={true} type="text" defaultValue={props.label} onChange={(e) => validateInput(e)} onKeyUp={(e) => props.kpHandler(e)}></input>
+                    <input autoFocus={true} type="text" defaultValue={props.label} onChange={(e) => props.onEntry(e)} onKeyUp={(e) => props.kpHandler(e)}></input>
                 </div>
 
                 <div className="sub-entries">
                     <div className="sub-entry" data-entry-id="1">
-                        <input type={SE1hidden ? 'password' : 'text'} defaultValue={props.subEntry1 || 'some text here'} placeholder="some text here"></input>
-                        <button type="button" className="hide-subentry" onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>
+                        <input type={SE1hidden ? 'password' : 'text'} defaultValue={props.subEntry1.content || 'some text here'} placeholder="some text here"></input>
+                        <button type="button" className={SE1hidden ? 'hide-subentry entry-hidden' : 'hide-subentry'} onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>
                     </div>
                     <div className="sub-entry" data-entry-id="2">
-                        <input type={SE2hidden ? 'password' : 'text'} defaultValue={props.subEntry2 || ''} placeholder="more text!"></input>
-                        <button type="button" className="hide-subentry" onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>    
+                        <input type={SE2hidden ? 'password' : 'text'} defaultValue={props.subEntry2.content || ''} placeholder="more text!"></input>
+                        <button type="button" className={SE2hidden ? 'hide-subentry entry-hidden' : 'hide-subentry'} onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>    
                     </div>
                     <div className="sub-entry" data-entry-id="3">
-                        <input type={SE3hidden ? 'password' : 'text'} defaultValue={props.subEntry3 || ''} placeholder='other string'></input>
-                        <button type="button" className="hide-subentry" onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>
+                        <input type={SE3hidden ? 'password' : 'text'} defaultValue={props.subEntry3.content || ''} placeholder='other string'></input>
+                        <button type="button" className={SE3hidden ? 'hide-subentry entry-hidden' : 'hide-subentry'} onClick={(e) => hideHandler(e)}><FontAwesomeIcon icon={faEyeSlash} /></button>
                     </div>
                 </div>
 
@@ -87,11 +84,11 @@ const Entry = (props) => {
                             className="copy-btn"
                             id="sub-entry-3"
                             onClick={(e) => copy(e)}
-                            value={props.subEntry1}>
+                            value={props.subEntry1.content}>
                         </input>
                         <p className="copy-confirmed">Copied!</p>
                     </div>
-                    {props.subEntry2
+                    {props.subEntry2.content
                         ?
                             <div className="sub-entry" data-entry-id="2">
                                 <input readOnly={true}
@@ -100,7 +97,7 @@ const Entry = (props) => {
                                     className="copy-btn"
                                     id="sub-entry-3"
                                     onClick={(e) => copy(e)}
-                                    value={props.subEntry2}>
+                                    value={props.subEntry2.content}>
                                 </input>
                                 <p className="copy-confirmed">Copied!</p>
                             </div>
@@ -108,7 +105,7 @@ const Entry = (props) => {
                         :
                             ''
                     }
-                    {props.subEntry3
+                    {props.subEntry3.content
                         ?
                             <div className="sub-entry" data-entry-id="3">
                                 <input readOnly={true}
@@ -117,7 +114,7 @@ const Entry = (props) => {
                                     className="copy-btn"
                                     id="sub-entry-3"
                                     onClick={(e) => copy(e)}
-                                    value={props.subEntry3}>
+                                    value={props.subEntry3.content}>
                                 </input>
                                 <p className="copy-confirmed">Copied!</p>
                             </div>

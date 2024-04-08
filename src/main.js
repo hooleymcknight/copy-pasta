@@ -15,12 +15,18 @@ const store = new Store({
   configName: 'user-preferences',
   defaults: {
     windowBounds: { width: 800, height: 600 },
-    entries: [
+    data: [
       {
-        label: 'Entry #1',
-        subEntry1: 'some text here',
-        subEntry2: 'more text!',
-        subEntry3: null,
+        "tabName": "Group #1",
+        "active": true,
+        "entries": [
+          {
+            label: 'Entry #1',
+            subEntry1: { "content": "some text here", "hidden": false },
+            subEntry2: { "content": "more text!", "hidden": false },
+            subEntry3: { "content": null, "hidden": false },
+          }
+        ]
       }
     ],
   }
@@ -126,35 +132,16 @@ app.on('activate', () => {
 //   mainWindow.close();
 // });
 
-// ipcMain.on('addOrDelete', (event, data) => {
-//   store.set('clientTimers', data);
-// });
-
 ipcMain.on('loadSavedEntries', (event, data) => {
-  event.reply('loadSavedEntriesReply', store.get('entries'));
+  event.reply('loadSavedEntriesReply', store.get('data'));
 });
 
 ipcMain.on('updateSavedEntries', (event, data) => {
-  store.set('entries', data);
+  store.set('data', data);
 });
 
 // ipcMain.on('requestAggro', (event, data) => {
 //   event.reply('sendAggroState', store.get('aggroMode'));
-// });
-
-// ipcMain.on('timersToggled', (event, data) => {
-//   if (data) {
-//     let nimage = nativeImage.createFromBuffer(Buffer.from(iconOverlay));
-//     mainWindow.setOverlayIcon(nimage, 'timers are going');
-//   }
-//   else {
-//     mainWindow.setOverlayIcon(null, 'timers are all stopped');
-//   }
-// });
-
-// ipcMain.on('stopWatch', (event, data) => {
-//   data.win = mainWindow;
-//   stopWatch(data);
 // });
 
 // move and uncomment the below if needed for testing

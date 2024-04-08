@@ -28,6 +28,23 @@ const template = () => {
             ]
         },
         {
+            label: 'Edit',
+            submenu: [
+                {
+                    label: 'Rename Current Tab',
+                    click: (menuItem, browserWindow, event) => {
+                        browserWindow.webContents.send('renameActiveTab');
+                    }
+                },
+                {
+                    label: 'Delete Current Tab',
+                    click: (menuItem, browserWindow, event) => {
+                        browserWindow.webContents.send('deleteActiveTab');
+                    }
+                }
+            ]
+        },
+        {
           label: 'Settings',
           submenu: [
             // {

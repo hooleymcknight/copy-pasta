@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPencil, faCheck, faSquareXmark, faPlus } from '@fortawesome/free-solid-svg-icons'
 import Entry from "./components/entry.jsx";
 import ConfirmModal from './components/confirmModal.jsx';
+import TabSection from './components/tabSection.jsx';
 const ipcRenderer = window.require('electron').ipcRenderer;
 
 // ipcRenderer.on('darkModeToggle', (event, data) => {
@@ -16,44 +17,32 @@ const ipcRenderer = window.require('electron').ipcRenderer;
 // })
 
 const CopyPasta = () => {
-    const [entriesData, setEntriesData] = React.useState([]);
-    const [timersData, setTimersData] = React.useState([]);
 
+    const [activeTab, setActiveTab] = React.useState(0); // index in entriesData, default is the first one
+    const [entriesData, setEntriesData] = React.useState([]);
     const [editing, setEditing] = React.useState('');
+    const [deleting, setDeleting] = React.useState([]);
+    const [renamingTab, setRenamingTab] = React.useState('');
+    
     const [isInputValid, setIsInputValid] = React.useState(true);
-    const [deleting, setDeleting] = React.useState('');
     const [isAggro, setIsAggro] = React.useState(false);
+
+    // clear everything out so we're not getting a bunch of listener duplicates
+    ipcRenderer.removeAllListeners();
 
     ipcRenderer.on('aggroModeToggle', (event, data) => {
         setIsAggro(data);
-    })
+    });
 
-    ipcRenderer.on('updateTime', (event, data) => {
-        let newData = JSON.parse(data);
-        const newTimersData = [...timersData];
-        const indexToReplace = newTimersData.indexOf(newTimersData.filter(x => x.name === newData.id)[0]);
-        newTimersData[indexToReplace] = { name: newData.id, count: Number(newData.count) };
-        setTimersData(newTimersData);
-    })
-
-    const stopHandler = (timer, closingWindow) => {
-        const newCount = timer.dataset.count;
-        const timerId = timer.id;
-
-        const newTimersData = [...timersData];
-        const indexToReplace = newTimersData.indexOf(newTimersData.filter(x => x.name === timerId)[0]);
-        newTimersData[indexToReplace] = { name: timerId, count: newCount };
-        ipcRenderer.send('updateSavedTimers', newTimersData);
-
-        if (closingWindow) {
-            ipcRenderer.send('closeWindow');
-        }
-        else {
-            setTimersData(newTimersData);
-        }
-    }
+    ipcRenderer.on('deleteActiveTab', () => {
+        setDeleting(['tab', activeTab]);
+    });
+    ipcRenderer.on('renameActiveTab', () => {
+        setRenamingTab(activeTab);
+    });
 
     const openEditName = (e) => {
+        console.log('open edit name');
         const container = e.target.closest('.entries-section');
         const entryId = container.querySelector('.entry').id;
         setEditing(entryId);
@@ -71,18 +60,28 @@ const CopyPasta = () => {
     }
 
     const closeEditName = (e) => {
+        console.log('close edit name');
         const container = e.target.closest('.entries-section');
         const newName = container.querySelector('input').value;
         const currentName = container.querySelector('.entry').id;
 
-        const newSubEntry1 = container.querySelector('[data-entry-id="1"] input').value;
-        const newSubEntry2 = container.querySelector('[data-entry-id="2"] input').value;
-        const newSubEntry3 = container.querySelector('[data-entry-id="3"] input').value;
+        const newSubEntry1 = {
+            "content": container.querySelector('[data-entry-id="1"] input').value,
+            "hidden": container.querySelector('[data-entry-id="1"] button').classList.contains('entry-hidden'),
+        }
+        const newSubEntry2 = {
+            "content": container.querySelector('[data-entry-id="2"] input').value,
+            "hidden": container.querySelector('[data-entry-id="2"] button').classList.contains('entry-hidden'),
+        }
+        const newSubEntry3 = {
+            "content": container.querySelector('[data-entry-id="3"] input').value,
+            "hidden": container.querySelector('[data-entry-id="3"] button').classList.contains('entry-hidden'),
+        }
 
         const newEntriesData = [...entriesData];
-        const currentEntry = newEntriesData.filter(x => x.label === currentName)[0];
-        const indexToReplace = newEntriesData.indexOf(currentEntry);
-        newEntriesData[indexToReplace] = {
+        const currentEntry = newEntriesData[activeTab].entries.filter(x => x.label === currentName)[0];
+        const indexToReplace = newEntriesData[activeTab].entries.indexOf(currentEntry);
+        newEntriesData[activeTab].entries[indexToReplace] = {
             label: newName,
             subEntry1: newSubEntry1,
             subEntry2: newSubEntry2,
@@ -106,76 +105,89 @@ const CopyPasta = () => {
     }
 
     const addHandler = () => { // this has been updated
-        const newItemNumber = entriesData.length + 1;
+        console.log('add handler');
+        const newItemNumber = entriesData[activeTab].entries.length + 1;
         const newItem = {
             label: `Entry #${newItemNumber}`,
-            subEntry1: 'some text here',
-            subEntry2: null,
-            subEntry3: null,
+            subEntry1: { "content": "some text here", "hidden":false },
+            subEntry2: { "content": null, "hidden":false },
+            subEntry3: { "content": null, "hidden":false },
         }
-        const newEntriesData = [...entriesData, newItem];
-        ipcRenderer.send('addOrDelete', newEntriesData);
+        
+        const newEntriesData = [...entriesData];
+        newEntriesData[activeTab].entries.push(newItem);
+
         setEntriesData(newEntriesData);
         setEditing(`Entry #${newItemNumber}`);
     }
 
     const triggerRemoveModal = (e) => {
+        console.log('trigger remove modal');
         const container = e.target.closest('.entries-section'); // update this class and the next
         const entryId = container.querySelector('.entry').id;
 
-        setDeleting(entryId);
+        setDeleting(['entry', entryId]);
     }
 
-    const removeHandler = (e, entryId) => {
-        const container = e.target.closest('.copy-pasta-app').querySelector(`[id="${entryId}"]`);
+    
 
-        let newEntriesData = [...entriesData];
-        newEntriesData = newEntriesData.filter(x => x.name !== entryId);
-        ipcRenderer.send('addOrDelete', newEntriesData);
-        setEntriesData(newEntriesData);
-        setDeleting('');
+    const removeHandler = (input) => {
+        // if deleting an entry:
+        if (input[0] === 'entry') {
+            let newEntriesData = [...entriesData];
+            newEntriesData[activeTab].entries = newEntriesData[activeTab].entries.filter(x => x.label !== input[1]);
+            ipcRenderer.send('updateSavedEntries', newEntriesData);
+            setEntriesData(newEntriesData);
+            setDeleting([]);
+        }
+        else { // if deleting a whole tab
+            let newEntriesData = [...entriesData];
+            newEntriesData.splice(activeTab, 1);
+            let newActiveTab = 0;
+            if (activeTab > 1) {
+                newActiveTab = activeTab - 1;
+            }
+            
+            const previouslyActiveTab = newEntriesData.filter(x => x.active === true)[0];
+            if (previouslyActiveTab) {
+                previouslyActiveTab.active = false;
+            }
+            newEntriesData[newActiveTab].active = true;
+
+            ipcRenderer.send('updateSavedEntries', newEntriesData);
+            setEntriesData(newEntriesData);
+            setActiveTab(newActiveTab);
+            setDeleting([]);
+        }
     }
 
     React.useEffect(() => {
-        ipcRenderer.on('stopAllTimers', (event) => {
-            const activeTimers = document.querySelectorAll('.entry.active');
-            if (activeTimers.length) {
-                activeTimers.forEach((timer) => {
-                    stopHandler(timer);
-                });
-            }
-        });
-
-        ipcRenderer.on('saveTimers', () => {
-            const activeTimers = document.querySelectorAll('.entry.active');
-            if (activeTimers.length) {
-                activeTimers.forEach((timer) => {
-                    stopHandler(timer, true);
-                    ipcRenderer.send('saveTimersReply', entriesData);
-                });
-            }
-            else {
-                ipcRenderer.send('closeWindow');
-            }
-        });
-
         // ipcRenderer.send('requestAggro');
         // ipcRenderer.on('sendAggroState', (event, data) => {
         //     setIsAggro(data);
         // });
 
         ipcRenderer.on('loadSavedEntriesReply', (event, data) => {
+            const activeTabData = data.filter(x => x.active === true)[0];
+            setActiveTab(data.indexOf(activeTabData));
             setEntriesData(data);
         });
 
-        if (entriesData.length > 0) return;
+        if (entriesData[activeTab]?.entries?.length > 0) return;
         ipcRenderer.send('loadSavedEntries', []);
     }, [entriesData]);
 
     return (
         <main className="copy-pasta-app">
+            <TabSection
+                entriesData={entriesData} activeTab={activeTab} renamingTab={renamingTab}
+                setEntriesData={(x) => setEntriesData(x)} setActiveTab={(x) => setActiveTab(x)} setRenamingTab={(x) => setRenamingTab(x)}
+            >
+            </TabSection>
             {
-                entriesData.map((x, idx) => 
+                entriesData[activeTab]?.entries?.length
+                ?
+                entriesData[activeTab]?.entries.map((x, idx) =>
                     <div key={x.label} className="entries-section" data-index={idx} data-count-on-load={x.count}>
                         <Entry label={x.label}
                             subEntry1={x.subEntry1} subEntry2={x.subEntry2} subEntry3={x.subEntry3}
@@ -186,15 +198,18 @@ const CopyPasta = () => {
                             validInput={isInputValid}
                             trashCanHandler={(e) => triggerRemoveModal(e)}
                             kpHandler={(e) => handleKeyPress(e)}
+                            onEntry={(e) => validateInput(e)}
                         ></Entry>
                     </div>
                 )
+                :
+                ''
             }
             <button className="btn" id="add" onClick={() => addHandler()}>
                 <FontAwesomeIcon icon={faPlus} />
             </button>
-            {deleting ?
-                <ConfirmModal label={deleting} aggro={isAggro} onDelete={(e) => removeHandler(e, deleting)} onCancel={() => setDeleting('')} />
+            {deleting.length ?
+                <ConfirmModal type={deleting[0]} label={deleting[1]} tabLabel={entriesData[activeTab].tabName} aggro={isAggro} onDelete={(e) => removeHandler(deleting)} onCancel={() => setDeleting([])} />
             :
                 ''
             }
