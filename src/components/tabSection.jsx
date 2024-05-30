@@ -11,6 +11,8 @@ const TabSection = (props) => {
     const entriesData = props.entriesData;
     const activeTab = props.activeTab;
 
+    const [prevTabScroll, setPrevTabScroll] = React.useState(0);
+
     const addTabHandler = () => {
         const newTabNumber = entriesData.length;
         const newTab = {
@@ -57,6 +59,19 @@ const TabSection = (props) => {
             previouslyActiveTab.active = false;
         }
         newEntriesData[newActiveTab].active = true;
+
+        // scroll to newly active tab
+        let toX = e.target.offsetLeft;
+        if (toX < prevTabScroll) {
+            toX = toX - 50;
+        }
+        else {
+            toX = toX + 50;
+        }
+        setPrevTabScroll(toX);
+        e.target.closest('.tabs-section').scrollTo(toX, 0);
+
+        // send data
         ipcRenderer.send('updateSavedEntries', newEntriesData);
         props.setActiveTab(newActiveTab);
     }
